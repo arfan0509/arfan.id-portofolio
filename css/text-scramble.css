@@ -1,0 +1,35 @@
+/* Transisi untuk konten */
+#about-title, #about-description {
+    transition: opacity 0.3s ease;
+}
+
+.scramble-container {
+    display: inline-block;
+    position: relative;
+}
+
+.scramble-char {
+    color: #818cf8; /* Warna karakter saat diacak */
+}
+
+/* Tambahkan ke text-scramble.css */
+.text-content-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.description-wrapper {
+    position: relative;
+    width: 100%;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+}
+
+/* Tambahkan breakpoint untuk responsivitas */
+@media (max-width: 768px) {
+    .description-wrapper {
+        min-height: 150px; /* Lebih kecil di layar mobile */
+    }
+}

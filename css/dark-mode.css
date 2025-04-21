@@ -1,0 +1,74 @@
+/* Dark mode styles */
+.dark {
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --text-primary: #ffffff;
+    --text-secondary: #bbbbbb;
+    --border-color: #333333;
+    --accent-color: #ffffff; /* Putih sebagai aksen */
+    --card-bg: #1e1e1e;
+}
+
+/* Body dan background */
+.dark body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Navbar */
+.dark nav {
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dark .nav-link {
+    color: var(--text-primary);
+}
+
+.dark .nav-link.active {
+    color: var(--accent-color);
+    border-bottom: 2px solid var(--accent-color);
+}
+
+/* Sections */
+.dark .bg-white {
+    background-color: var(--bg-secondary);
+}
+
+.dark .bg-gray-50 {
+    background-color: var(--bg-primary);
+}
+
+/* Text colors */
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-gray-600 {
+    color: var(--text-primary);
+}
+
+.dark .text-gray-500 {
+    color: var(--text-secondary);
+}
+
+/* Cards dan borders */
+.dark .shadow-md,
+.dark .shadow-lg {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+.dark .border-gray-200,
+.dark .border-gray-300 {
+    border-color: var(--border-color);
+}
+
+/* Badge dan buttons — ubah semua elemen ungu jadi netral */
+.dark .bg-indigo-100,
+.dark .bg-indigo-50 {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .text-indigo-800,
+.dark .text-indigo-700,
+.dark .text-indigo-600 {
+    color: #ffffff;
+}
