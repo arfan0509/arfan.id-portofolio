@@ -33,9 +33,9 @@ document.addEventListener("DOMContentLoaded", function () {
       if (this.isTitle && newText.length > 18) {
         // Batasi title menjadi maksimal 18 karakter
         newText = newText.substring(0, 18);
-      } else if (!this.isTitle && newText.length > 355) {
+      } else if (!this.isTitle && newText.length > 350) {
         // Batasi description tetap 350 karakter
-        newText = newText.substring(0, 355);
+        newText = newText.substring(0, 350);
       }
 
       // Simpan state sebelum animasi
