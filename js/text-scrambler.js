@@ -5,13 +5,37 @@ document.addEventListener("DOMContentLoaded", function () {
             this.el = el;
             this.chars = "!<>-_\\/[]{}—=+*^?#________";
             this.update = this.update.bind(this);
+
+            // Simpan dimensi awal
+            this.originalHeight = el.offsetHeight;
+            this.originalWidth = el.offsetWidth;
+
+            // Aplikasikan height fix
+            el.style.minHeight = `${this.originalHeight}px`;
         }
 
         setText(newText) {
+            // Simpan state halaman sebelum animasi
+            const scrollPos = window.scrollY;
+
+            // Pastikan height tetap konsisten
+            if (!this.el.style.minHeight) {
+                this.el.style.minHeight = `${this.originalHeight}px`;
+            }
+
             const oldText = this.el.innerText;
             const length = Math.max(oldText.length, newText.length);
             const promise = new Promise((resolve) => (this.resolve = resolve));
             this.queue = [];
+
+            // Buat HTML placeholder dengan dimensi yang sama
+            const placeholder = document.createElement("div");
+            placeholder.style.visibility = "hidden";
+            placeholder.style.position = "absolute";
+            placeholder.style.width = `${this.el.offsetWidth}px`;
+            placeholder.style.height = `${this.el.offsetHeight}px`;
+            placeholder.innerHTML = newText;
+            document.body.appendChild(placeholder);
 
             for (let i = 0; i < length; i++) {
                 const from = oldText[i] || "";
@@ -21,13 +45,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 this.queue.push({ from, to, start, end });
             }
 
+            // Hapus placeholder setelah selesai
+            document.body.removeChild(placeholder);
+
             cancelAnimationFrame(this.frameRequest);
             this.frame = 0;
-            this.update();
+
+            // Mulai update pada next frame
+            requestAnimationFrame(() => {
+                this.update();
+                // Pertahankan posisi scroll
+                window.scrollTo(0, scrollPos);
+            });
+
             return promise;
         }
 
         update() {
+            // Simpan dimensi original sebelum update
+            const contentHeight = this.el.offsetHeight;
+
             let output = "";
             let complete = 0;
 
@@ -48,7 +85,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
 
+            // Update innerHTML dengan output baru
             this.el.innerHTML = output;
+
+            // Pastikan height tidak berubah setelah update
+            if (this.el.offsetHeight < contentHeight) {
+                this.el.style.minHeight = `${contentHeight}px`;
+            }
 
             if (complete === this.queue.length) {
                 this.resolve();
@@ -68,12 +111,12 @@ document.addEventListener("DOMContentLoaded", function () {
         {
             title: "Gaming Tactician",
             description:
-                "Sometimes I push rank in Mobile Legends or Honor of Kings, and other times I enjoy hunting monsters with Dual Blades in Monster Hunter. When boredom hits, Call of Duty Mobile is my go-to escape. For me, gaming isn’t just entertainment—it’s a fun way to sharpen strategic thinking, boost reaction time, and strengthen creative problem-solving skills.",
+                "Sometimes I push rank in Mobile Legends or Honor of Kings, and other times I enjoy hunting monsters with Dual Blades in Monster Hunter. When boredom hits, Call of Duty Mobile is my go-to escape. For me, gaming isn't just entertainment—it's a fun way to sharpen strategic thinking, boost reaction time, and strengthen creative problem-solving skills.",
         },
         {
             title: "Movie Enthusiast",
             description:
-                "Fantasy, action, horror, romance—as long as the story hits, I’m all in. I love films that make me think, laugh, or even leave me speechless after the credits roll. Sometimes the visuals are stunning, other times the story is simple but deeply moving. Watching movies is my kind of escape, and also a place where I discover new perspectives I never thought of before.",
+                "Fantasy, action, horror, romance—as long as the story hits, I'm all in. I love films that make me think, laugh, or even leave me speechless after the credits roll. Sometimes the visuals are stunning, other times the story is simple but deeply moving. Watching movies is my kind of escape, and also a place where I discover new perspectives I never thought of before.",
         },
         {
             title: "Hobby: Swimming & Food Exploration",
@@ -101,6 +144,14 @@ document.addEventListener("DOMContentLoaded", function () {
         ...alternativeContent,
     ];
 
+    // Lock dimensions pada container
+    const descriptionWrapper = document.querySelector(".description-wrapper");
+    if (descriptionWrapper) {
+        // Simpan tinggi asli
+        const originalWrapperHeight = descriptionWrapper.offsetHeight;
+        descriptionWrapper.style.minHeight = `${originalWrapperHeight}px`;
+    }
+
     // Inisialisasi scramblers
     const titleScrambler = new TextScramble(titleElement);
     const descriptionScrambler = new TextScramble(descriptionElement);
@@ -113,6 +164,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (isChanging) return;
         isChanging = true;
 
+        // Simpan posisi scroll sebelum perubahan
+        const scrollPos = window.scrollY;
+
         // Update indeks
         currentIndex = (currentIndex + 1) % allContent.length;
         const nextContent = allContent[currentIndex];
@@ -122,10 +176,30 @@ document.addEventListener("DOMContentLoaded", function () {
             // Setelah scramble judul selesai, scramble deskripsi
             descriptionScrambler.setText(nextContent.description).then(() => {
                 isChanging = false;
+
+                // Restore posisi scroll
+                window.scrollTo(0, scrollPos);
             });
         });
     }
 
-    // Ganti konten setiap 8 detik
+    // Ganti konten setiap 14 detik
     setInterval(changeContent, 14000);
+
+    // Fix khusus untuk mobile
+    if (window.innerWidth <= 768) {
+        // Pastikan particles container tidak mempengaruhi layout
+        const particlesContainer = document.getElementById("particles-js");
+        if (particlesContainer) {
+            particlesContainer.style.position = "absolute";
+            particlesContainer.style.pointerEvents = "none";
+        }
+
+        // Lock hero section height
+        const aboutSection = document.getElementById("about");
+        if (aboutSection) {
+            // Set min-height yang tetap berdasarkan tinggi konten
+            aboutSection.style.minHeight = `${aboutSection.offsetHeight}px`;
+        }
+    }
 });

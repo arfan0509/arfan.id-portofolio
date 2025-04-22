@@ -4,12 +4,16 @@
 }
 
 .scramble-container {
-    display: inline-block;
+    display: block;
     position: relative;
+    width: 100%;
+    overflow: hidden;
 }
 
 .scramble-char {
-    color: #818cf8; /* Warna karakter saat diacak */
+    color: #818cf8;
+    display: inline-block;
+    position: relative;
 }
 
 /* Tambahkan ke text-scramble.css */
@@ -18,18 +22,62 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    isolation: isolate;
+    z-index: 1;
+    /* Kurangi jarak bawah */
+    margin-bottom: 0;
 }
 
 .description-wrapper {
     position: relative;
     width: 100%;
-    overflow-y: auto;
-    margin-bottom: 1.5rem;
+    overflow: hidden;
+    /* Kurangi margin-bottom */
+    margin-bottom: 1rem;
+    min-height: 150px;
+}
+
+/* Tech Stack container */
+.mt-6 {
+    /* Kurangi margin top */
+    margin-top: 1rem !important;
 }
 
 /* Tambahkan breakpoint untuk responsivitas */
 @media (max-width: 768px) {
     .description-wrapper {
-        min-height: 150px; /* Lebih kecil di layar mobile */
+        min-height: 120px; /* Lebih kecil di layar mobile */
+        margin-bottom: 0.5rem; /* Kurangi margin di mobile */
+    }
+    
+    #particles-js {
+        position: absolute !important;
+        pointer-events: none !important;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 10;
+    }
+    
+    /* Kompres layout vertikal di mobile */
+    #about-title.scramble-container {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Kurangi jarak antara deskripsi dan tech stack */
+    .mt-6 {
+        margin-top: 0.5rem !important;
+    }
+    
+    /* Pastikan section tidak terlalu panjang */
+    #about.section {
+        padding-top: 5rem !important; /* Kurangi padding atas */
+        padding-bottom: 2rem !important; /* Kurangi padding bawah */
     }
 }
