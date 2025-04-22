@@ -1,22 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // Variabel untuk melacak apakah pengguna sedang scrolling
-  let isUserScrolling = false;
-  let lastScrollTime = 0;
-  let lastScrollPosition = 0;
+  // Fungsi untuk memeriksa apakah elemen terlihat di viewport
+  function isElementInViewport(el) {
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    const windowHeight =
+      window.innerHeight || document.documentElement.clientHeight;
 
-  // Deteksi scroll pengguna
-  window.addEventListener("scroll", function () {
-    isUserScrolling = true;
-    lastScrollTime = Date.now();
-    lastScrollPosition = window.scrollY;
+    // Element dianggap terlihat jika setidaknya 50% dari elemen terlihat
+    // Ini bisa disesuaikan sesuai kebutuhan
+    const visibleThreshold = rect.height * 0.5;
 
-    // Reset flag setelah 100ms tanpa scroll
-    setTimeout(function () {
-      if (Date.now() - lastScrollTime >= 100) {
-        isUserScrolling = false;
-      }
-    }, 150);
-  });
+    return (
+      rect.top <= windowHeight - visibleThreshold &&
+      rect.bottom >= visibleThreshold
+    );
+  }
 
   // Kelas TextScramble untuk efek acak teks dengan kontrol layout
   class TextScramble {
@@ -48,11 +46,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     setText(newText) {
-      // Jangan lakukan scramble jika pengguna sedang scrolling
-      if (isUserScrolling) {
-        return Promise.resolve();
-      }
-
       // Batasi jumlah karakter maksimum berdasarkan jenis elemen
       if (this.isTitle && newText.length > 18) {
         // Batasi title menjadi maksimal 18 karakter
@@ -78,13 +71,8 @@ document.addEventListener("DOMContentLoaded", function () {
         this.queue.push({ from, to, start, end });
       }
 
-      // JANGAN manipulasi scrolling atau overflow selama animasi
-      // Menghapus: document.body.style.overflowX = "hidden";
-
       cancelAnimationFrame(this.frameRequest);
       this.frame = 0;
-
-      // Mulai update tanpa mempengaruhi scroll
       this.update();
 
       return promise;
@@ -120,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       if (complete === this.queue.length) {
-        // Animasi selesai
         this.resolve();
       } else {
         this.frameRequest = requestAnimationFrame(this.update);
@@ -170,9 +157,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // Dapatkan elemen yang akan diubah
   const titleElement = document.getElementById("about-title");
   const descriptionElement = document.getElementById("about-description");
+  const aboutSection = document.getElementById("about");
 
-  if (!titleElement || !descriptionElement) {
-    console.warn("Title or description elements not found");
+  if (!titleElement || !descriptionElement || !aboutSection) {
+    console.warn("Required elements not found");
     return;
   }
 
@@ -224,20 +212,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let currentIndex = 0;
   let isChanging = false;
-  let contentChangeTimer = null;
+  let contentInterval = null;
 
   // Fungsi untuk mengganti konten
   function changeContent() {
-    // Jangan ubah konten jika pengguna sedang scrolling
-    if (isUserScrolling || isChanging) {
-      // Jadwalkan ulang dalam 1 detik jika pengguna sedang scrolling
-      if (isUserScrolling) {
-        if (contentChangeTimer) {
-          clearTimeout(contentChangeTimer);
-        }
-        contentChangeTimer = setTimeout(changeContent, 1000);
-        return;
-      }
+    // Periksa apakah hero section terlihat
+    if (!isElementInViewport(aboutSection) || isChanging) {
       return;
     }
 
@@ -252,28 +232,39 @@ document.addEventListener("DOMContentLoaded", function () {
       // Setelah scramble judul selesai, scramble deskripsi
       descriptionScrambler.setText(nextContent.description).then(() => {
         isChanging = false;
-
-        // Pastikan layout tetap konsisten
         ensureConsistentLayout();
       });
     });
   }
 
-  // Mulai interval pergantian konten
-  let contentInterval = setInterval(changeContent, 14000);
-
-  // Reset interval saat user berhenti scrolling
-  window.addEventListener("scroll", function () {
-    if (contentInterval) {
-      clearInterval(contentInterval);
-    }
-
-    // Mulai ulang interval setelah 2 detik tanpa scroll
-    setTimeout(function () {
-      if (!isUserScrolling) {
+  // Fungsi untuk start/stop interval berdasarkan visibility
+  function manageContentInterval() {
+    // Jika hero section terlihat dan interval belum berjalan
+    if (isElementInViewport(aboutSection)) {
+      if (!contentInterval) {
+        // Mulai interval jika belum ada
         contentInterval = setInterval(changeContent, 14000);
       }
-    }, 2000);
+    } else {
+      // Jika tidak terlihat dan interval sedang berjalan
+      if (contentInterval) {
+        // Hentikan interval
+        clearInterval(contentInterval);
+        contentInterval = null;
+      }
+    }
+  }
+
+  // Panggil sekali di awal
+  manageContentInterval();
+
+  // Periksa visibility saat scrolling
+  window.addEventListener("scroll", manageContentInterval, { passive: true });
+
+  // Periksa kembali saat resize window
+  window.addEventListener("resize", function () {
+    ensureConsistentLayout();
+    manageContentInterval();
   });
 
   // Fix untuk mobile
@@ -285,7 +276,4 @@ document.addEventListener("DOMContentLoaded", function () {
       particlesContainer.style.pointerEvents = "none";
     }
   }
-
-  // Tangani event resize untuk responsive
-  window.addEventListener("resize", ensureConsistentLayout);
 });
