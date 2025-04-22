@@ -1,4 +1,23 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Variabel untuk melacak apakah pengguna sedang scrolling
+  let isUserScrolling = false;
+  let lastScrollTime = 0;
+  let lastScrollPosition = 0;
+
+  // Deteksi scroll pengguna
+  window.addEventListener("scroll", function () {
+    isUserScrolling = true;
+    lastScrollTime = Date.now();
+    lastScrollPosition = window.scrollY;
+
+    // Reset flag setelah 100ms tanpa scroll
+    setTimeout(function () {
+      if (Date.now() - lastScrollTime >= 100) {
+        isUserScrolling = false;
+      }
+    }, 150);
+  });
+
   // Kelas TextScramble untuk efek acak teks dengan kontrol layout
   class TextScramble {
     constructor(el) {
@@ -29,6 +48,11 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     setText(newText) {
+      // Jangan lakukan scramble jika pengguna sedang scrolling
+      if (isUserScrolling) {
+        return Promise.resolve();
+      }
+
       // Batasi jumlah karakter maksimum berdasarkan jenis elemen
       if (this.isTitle && newText.length > 18) {
         // Batasi title menjadi maksimal 18 karakter
@@ -37,9 +61,6 @@ document.addEventListener("DOMContentLoaded", function () {
         // Batasi description tetap 350 karakter
         newText = newText.substring(0, 350);
       }
-
-      // Simpan state sebelum animasi
-      const scrollPos = window.scrollY;
 
       // Pastikan dimensi tetap konsisten
       this.el.style.minHeight = `${this.originalHeight}px`;
@@ -57,18 +78,14 @@ document.addEventListener("DOMContentLoaded", function () {
         this.queue.push({ from, to, start, end });
       }
 
-      // Kunci layout selama animasi
-      document.body.style.overflowX = "hidden";
+      // JANGAN manipulasi scrolling atau overflow selama animasi
+      // Menghapus: document.body.style.overflowX = "hidden";
 
       cancelAnimationFrame(this.frameRequest);
       this.frame = 0;
 
-      // Mulai update
-      requestAnimationFrame(() => {
-        this.update();
-        // Pertahankan posisi scroll
-        window.scrollTo(0, scrollPos);
-      });
+      // Mulai update tanpa mempengaruhi scroll
+      this.update();
 
       return promise;
     }
@@ -104,7 +121,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
       if (complete === this.queue.length) {
         // Animasi selesai
-        document.body.style.overflowX = "";
         this.resolve();
       } else {
         this.frameRequest = requestAnimationFrame(this.update);
@@ -208,14 +224,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let currentIndex = 0;
   let isChanging = false;
+  let contentChangeTimer = null;
 
   // Fungsi untuk mengganti konten
   function changeContent() {
-    if (isChanging) return;
-    isChanging = true;
+    // Jangan ubah konten jika pengguna sedang scrolling
+    if (isUserScrolling || isChanging) {
+      // Jadwalkan ulang dalam 1 detik jika pengguna sedang scrolling
+      if (isUserScrolling) {
+        if (contentChangeTimer) {
+          clearTimeout(contentChangeTimer);
+        }
+        contentChangeTimer = setTimeout(changeContent, 1000);
+        return;
+      }
+      return;
+    }
 
-    // Simpan posisi scroll
-    const scrollPos = window.scrollY;
+    isChanging = true;
 
     // Update indeks
     currentIndex = (currentIndex + 1) % allContent.length;
@@ -229,15 +255,26 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Pastikan layout tetap konsisten
         ensureConsistentLayout();
-
-        // Kembalikan ke posisi scroll semula
-        window.scrollTo(0, scrollPos);
       });
     });
   }
 
-  // Ganti konten setiap 14 detik
-  setInterval(changeContent, 14000);
+  // Mulai interval pergantian konten
+  let contentInterval = setInterval(changeContent, 14000);
+
+  // Reset interval saat user berhenti scrolling
+  window.addEventListener("scroll", function () {
+    if (contentInterval) {
+      clearInterval(contentInterval);
+    }
+
+    // Mulai ulang interval setelah 2 detik tanpa scroll
+    setTimeout(function () {
+      if (!isUserScrolling) {
+        contentInterval = setInterval(changeContent, 14000);
+      }
+    }, 2000);
+  });
 
   // Fix untuk mobile
   if (window.innerWidth <= 768) {
