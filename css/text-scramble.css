@@ -16,7 +16,7 @@
     position: relative;
 }
 
-/* Tambahkan ke text-scramble.css */
+/* Text content container dengan jarak bawah tetap */
 .text-content-container {
     position: relative;
     display: flex;
@@ -24,22 +24,33 @@
     width: 100%;
     isolation: isolate;
     z-index: 1;
-    /* Kurangi jarak bawah */
     margin-bottom: 0;
 }
 
+/* Title wrapper */
+.title-wrapper {
+    margin-bottom: 0.5rem;
+}
+
+/* Description wrapper dengan height yang tetap */
 .description-wrapper {
     position: relative;
     width: 100%;
     overflow: hidden;
-    /* Kurangi margin-bottom */
     margin-bottom: 1rem;
+    /* Height fix */
     min-height: 150px;
 }
 
-/* Tech Stack container */
-.mt-6 {
-    /* Kurangi margin top */
+/* Fix untuk konten description */
+#about-description {
+    position: relative;
+    display: block;
+}
+
+/* Tech Stack container dengan jarak tetap */
+.mt-3, .mt-4, .mt-6 {
+    /* Jarak tetap */
     margin-top: 1rem !important;
 }
 
@@ -71,7 +82,7 @@
     }
     
     /* Kurangi jarak antara deskripsi dan tech stack */
-    .mt-6 {
+    .mt-6, .mt-4, .mt-3 {
         margin-top: 0.5rem !important;
     }
     
